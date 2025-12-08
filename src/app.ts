@@ -1,4 +1,5 @@
 import express, { Request, Response } from "express";
+import initDB from "./config/db";
 import logger from "./middleware/logger";
 
 const app = express();
@@ -6,6 +7,10 @@ const app = express();
 app.use(express.json());
 app.use(logger);
 
+//* Initialize DB
+initDB();
+
+//* Root Route
 app.get("/", async (req: Request, res: Response) => {
   res.send("Vehicle Rental System Server Is Running...");
 });
