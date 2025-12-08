@@ -14,7 +14,7 @@ const initDB = async () => {
     emaiL VARCHAR(250) UNIQUE NOT NULL,
     password TEXT NOT NULL,
     phone VARCHAR(15) NOT NULL, 
-    role VARCHAR(10) NOT NULL 
+    role VARCHAR(10) DEFAULT 'customer'
     ) 
     `);
 

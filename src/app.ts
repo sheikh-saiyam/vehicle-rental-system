@@ -1,6 +1,7 @@
 import express, { Request, Response } from "express";
 import initDB from "./config/db";
 import logger from "./middleware/logger";
+import { authRoutes } from "./modules/auth/auth.routes";
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.get("/", async (req: Request, res: Response) => {
 });
 
 //* ROUTES
+app.use("/api/v1/auth", authRoutes);
 
 //* NOT FOUND ROUTE
 app.use((req: Request, res: Response) => {
