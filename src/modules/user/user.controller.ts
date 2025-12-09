@@ -5,10 +5,18 @@ const getUsers = async (req: Request, res: Response) => {
   try {
     const result = await userServices.getUsers();
 
+    if (result.rowCount === 0) {
+      res.status(200).json({
+        success: true,
+        message: "No users found",
+        data: result.rows,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: "Users retrieved successfully",
-      data: result,
+      data: result.rows,
     });
   } catch (error) {
     res.status(500).json({
@@ -26,7 +34,7 @@ const deleteUser = async (req: Request, res: Response) => {
     const result = await userServices.deleteUser(id!);
 
     if (result.rowCount === 0) {
-      res.status(200).json({
+      res.status(404).json({
         success: false,
         message: "User not found!",
       });

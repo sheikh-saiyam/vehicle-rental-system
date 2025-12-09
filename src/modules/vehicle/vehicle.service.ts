@@ -38,15 +38,12 @@ const createVehicle = async (payload: Record<string, unknown>) => {
 
 const getVehicles = async () => {
   const result = await pool.query(`SELECT * FROM vehicles`);
-  return result.rows;
+  return result;
 };
 
 const getVehicleById = async (id: string) => {
   const result = await pool.query(`SELECT * FROM vehicles WHERE id = $1`, [id]);
-  if (result.rowCount === 0) {
-    throw new Error("Vehicle not found!");
-  }
-  return result.rows[0];
+  return result;
 };
 
 const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
@@ -56,7 +53,7 @@ const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
   );
 
   if (vehicleResult.rowCount === 0) {
-    throw new Error("Vehicle not found!");
+    return vehicleResult;
   }
 
   const vehicle = vehicleResult.rows[0];
@@ -71,9 +68,21 @@ const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
 
   if (daily_rent_price) {
     if (typeof daily_rent_price === "number") {
+      if ((daily_rent_price as number) < 0) {
+        throw new Error("daily_rent_price must be a positive number");
+      }
       Number(daily_rent_price);
     } else {
       throw new Error("daily_rent_price must be a number");
+    }
+  }
+
+  if (availability_status) {
+    if (
+      (availability_status as string) !== "available" &&
+      (availability_status as string) !== "booked"
+    ) {
+      throw new Error("availability_status value must be available or booked");
     }
   }
 

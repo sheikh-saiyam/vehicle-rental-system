@@ -32,7 +32,7 @@ const loginUser = async (reqEmail: string, reqPassword: string) => {
   );
 
   if (result.rows.length === 0) {
-    throw new Error("User not found!");
+    return undefined;
   }
 
   const { id, name, email, password, phone, role } = result.rows[0];

@@ -11,7 +11,7 @@ const auth = (...roles: ("admin" | "customer")[]) => {
       console.log("Token:", { token });
 
       if (!token) {
-        return res.status(500).json({
+        return res.status(401).json({
           success: false,
           message: "Unauthorized to perform this action!",
         });
@@ -26,7 +26,7 @@ const auth = (...roles: ("admin" | "customer")[]) => {
       console.log({ role: decoded.role });
 
       if (roles.length > 0 && !roles.includes(decoded.role)) {
-        return res.status(500).json({
+        return res.status(403).json({
           success: false,
           message: "Forbidden: User role not allowed for this action!",
         });

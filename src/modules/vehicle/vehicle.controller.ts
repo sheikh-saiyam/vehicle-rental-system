@@ -5,7 +5,7 @@ const createVehicle = async (req: Request, res: Response) => {
   try {
     const result = await vehicleServices.createVehicle(req.body);
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message: "Vehicle created successfully",
       data: result,
@@ -23,10 +23,18 @@ const getVehicles = async (req: Request, res: Response) => {
   try {
     const result = await vehicleServices.getVehicles();
 
+    if (result.rowCount === 0) {
+      res.status(200).json({
+        success: true,
+        message: "No vehicles found",
+        data: result.rows,
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: "Vehicles retrieved successfully",
-      data: result,
+      data: result.rows,
     });
   } catch (error) {
     res.status(500).json({
@@ -42,10 +50,17 @@ const getVehicleById = async (req: Request, res: Response) => {
     const { id } = req.params;
     const result = await vehicleServices.getVehicleById(id!);
 
+    if (result.rowCount === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Vehicle not found!",
+      });
+    }
+
     res.status(200).json({
       success: true,
       message: "Vehicle retrieved successfully",
-      data: result,
+      data: result.rows[0],
     });
   } catch (error) {
     res.status(500).json({
@@ -61,6 +76,13 @@ const updateVehicle = async (req: Request, res: Response) => {
     const { id } = req.params;
 
     const result = await vehicleServices.updateVehicle(id!, req.body);
+
+    if (result.rowCount === 0) {
+      res.status(404).json({
+        success: false,
+        message: "Vehicle not found!",
+      });
+    }
 
     res.status(200).json({
       success: true,
@@ -83,7 +105,7 @@ const deleteVehicle = async (req: Request, res: Response) => {
     const result = await vehicleServices.deleteVehicle(id!);
 
     if (result.rowCount === 0) {
-      res.status(200).json({
+      res.status(404).json({
         success: false,
         message: "Vehicle not found!",
       });
