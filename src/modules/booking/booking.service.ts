@@ -53,7 +53,33 @@ const createBooking = async (payload: Record<string, unknown>) => {
   };
 };
 
+const updateStatus = async () => {
+  const bookings = await pool.query(
+    `SELECT id, status, rent_end_date, vehicle_id FROM bookings`
+  );
+
+  bookings.rows.map(async (booking: any) => {
+    const today = new Date().getDate();
+    const rent_end_date = new Date(booking.rent_end_date).getDate();
+
+    if (today >= rent_end_date) {
+      Promise.all([
+        await pool.query(`UPDATE bookings SET status=$1 WHERE id=$2`, [
+          "returned",
+          booking.id,
+        ]),
+        await pool.query(
+          `UPDATE vehicles SET availability_status=$1 WHERE id=$2`,
+          ["available", booking.vehicle_id]
+        ),
+      ]);
+    }
+  });
+};
+
 const getBookings = async (role: RoleType, customer_id: string) => {
+  await updateStatus();
+
   const [bookingsResult, usersResult, vehiclesResult] = await Promise.all([
     role === "customer"
       ? pool.query(`SELECT * FROM bookings WHERE customer_id = $1`, [
@@ -120,7 +146,9 @@ const updateBooking = async (
   const rent_start_date = new Date(booking.rows[0].rent_start_date).getDate();
 
   if (today >= rent_start_date) {
-    throw new Error("Can't cancel booking. rental period has already started");
+    return {
+      message: "Can't cancel booking. rental period has already started",
+    };
   }
 
   const bookingResult = await pool.query(

@@ -51,7 +51,7 @@ const updateBooking = async (req: Request, res: Response) => {
     if (!status) {
       return res.status(400).json({
         success: false,
-        message: "Bad Request: Status is required!",
+        message: "Bad Request: Status is required",
       });
     }
 
