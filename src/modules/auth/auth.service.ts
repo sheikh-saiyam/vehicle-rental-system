@@ -10,6 +10,12 @@ const registerUser = async (payload: Record<string, unknown>) => {
     throw new Error("Password must be at least 6 characters long");
   }
 
+  if (role) {
+    if (role !== "admin" && role !== "customer") {
+      throw new Error("User role must be admin or customer");
+    }
+  }
+
   const formattedEmail = (email as string).toLowerCase();
   const hashedPassword = await bcrypt.hash(password as string, 10);
 
@@ -43,16 +49,17 @@ const loginUser = async (reqEmail: string, reqPassword: string) => {
     throw new Error("Invalid password. Please try again!");
   }
 
-  const token = jwt.sign({ id, name, email, role }, config.jwt_secret as string, {
-    expiresIn: "7d",
-  });
+  const token = jwt.sign(
+    { id, name, email, role },
+    config.jwt_secret as string,
+    {
+      expiresIn: "7d",
+    }
+  );
 
   console.log(`Token for ${name}:`, { token });
 
   return { token: token, user: { id, name, email, phone, role } };
 };
 
-export const authServices = {
-  registerUser,
-  loginUser,
-};
+export const authServices = { registerUser, loginUser };

@@ -5,6 +5,7 @@ const getUsers = async () => {
   return result;
 };
 
+// TODO: Delete a user (only if no active bookings exist)
 const deleteUser = async (id: string) => {
   const result = await pool.query(`DELETE FROM users WHERE id = $1`, [id]);
   return result;
