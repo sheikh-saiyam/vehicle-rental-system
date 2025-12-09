@@ -43,7 +43,7 @@ const loginUser = async (reqEmail: string, reqPassword: string) => {
     throw new Error("Invalid password. Please try again!");
   }
 
-  const token = jwt.sign({ name, email, role }, config.jwt_secret as string, {
+  const token = jwt.sign({ id, name, email, role }, config.jwt_secret as string, {
     expiresIn: "7d",
   });
 

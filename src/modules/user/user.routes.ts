@@ -1,7 +1,7 @@
 import express from "express";
-import { userControllers } from "./user.controller";
-import auth from "../../middleware/auth";
+import auth, { verifyUser } from "../../middleware/auth";
 import { Roles } from "../../types/auth";
+import { userControllers } from "./user.controller";
 
 const router = express.Router();
 
@@ -9,7 +9,12 @@ const router = express.Router();
 router.get("/", auth(Roles.admin), userControllers.getUsers);
 
 //? ADMIN & CUSTOMER
-router.put("/:id", userControllers.updateUser);
+router.put(
+  "/:id",
+  auth(Roles.admin, Roles.customer),
+  verifyUser(),
+  userControllers.updateUser
+);
 
 //? ADMIN ONLY
 router.delete("/:id", auth(Roles.admin), userControllers.deleteUser);
