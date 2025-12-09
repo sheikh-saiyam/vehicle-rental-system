@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import config from "../config";
+import { RoleType } from "../types/auth.types";
 
-const auth = (...roles: ("admin" | "customer")[]) => {
+const auth = (...roles: RoleType[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const bearerToken = req.headers.authorization;

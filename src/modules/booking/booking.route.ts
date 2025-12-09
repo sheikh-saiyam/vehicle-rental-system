@@ -1,7 +1,7 @@
 import express from "express";
 import { bookingsControllers } from "./booking.controller";
 import auth, { verifyUser } from "../../middleware/auth";
-import { Roles } from "../../types/auth";
+import { Roles } from "../../types/auth.types";
 
 const router = express.Router();
 

@@ -1,5 +1,5 @@
 import { pool } from "../../config/db";
-import { RoleType } from "../../types/auth";
+import { RoleType } from "../../types/auth.types";
 
 const createBooking = async (payload: Record<string, unknown>) => {
   const { customer_id, vehicle_id, rent_start_date, rent_end_date } = payload;
