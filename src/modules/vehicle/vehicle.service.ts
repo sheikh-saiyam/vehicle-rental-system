@@ -101,8 +101,16 @@ const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
   return result;
 };
 
-// TODO: Delete a vehicle (only if no active bookings exist)
 const deleteVehicle = async (id: string) => {
+  const bookingResult = await pool.query(
+    `SELECT vehicle_id FROM bookings WHERE vehicle_id=$1`,
+    [id]
+  );
+
+  if (bookingResult.rowCount && bookingResult.rowCount > 0) {
+    throw new Error("Can't delete vehicle with active bookings");
+  }
+
   const result = await pool.query(`DELETE FROM vehicles WHERE id = $1`, [id]);
   return result;
 };
