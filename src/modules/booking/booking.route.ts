@@ -11,6 +11,10 @@ router.get(
   auth(Roles.admin, Roles.customer),
   bookingsControllers.getBookings
 );
-router.put("/:id", bookingsControllers.updateBooking);
+router.put(
+  "/:id",
+  auth(Roles.admin, Roles.customer),
+  bookingsControllers.updateBooking
+);
 
 export const bookingsRoutes = router;

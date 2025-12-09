@@ -1,4 +1,5 @@
 import { pool } from "../../config/db";
+import { RoleType } from "../../types/auth";
 
 const createBooking = async (payload: Record<string, unknown>) => {
   const { customer_id, vehicle_id, rent_start_date, rent_end_date } = payload;
@@ -52,7 +53,7 @@ const createBooking = async (payload: Record<string, unknown>) => {
   };
 };
 
-const getBookings = async (role: "admin" | "customer", customer_id: string) => {
+const getBookings = async (role: RoleType, customer_id: string) => {
   const [bookingsResult, usersResult, vehiclesResult] = await Promise.all([
     role === "customer"
       ? pool.query(`SELECT * FROM bookings WHERE customer_id = $1`, [
@@ -90,8 +91,76 @@ const getBookings = async (role: "admin" | "customer", customer_id: string) => {
   return result;
 };
 
+const updateBooking = async (
+  id: string,
+  role: RoleType,
+  status: "returned" | "cancelled"
+) => {
+  //? Status Validation
+  if (status !== "cancelled" && status !== "returned") {
+    return { message: "Invalid status! must be cancelled or returned" };
+  }
+  if (role === "customer" && status === "returned") {
+    return { message: "Customer can't return the booking" };
+  }
+  if (role === "admin" && status === "cancelled") {
+    return { message: "Bad Request: Admin can only mark as returned" };
+  }
+
+  const booking = await pool.query(
+    `SELECT rent_start_date FROM bookings WHERE id=$1`,
+    [id]
+  );
+
+  if (booking.rowCount === 0) {
+    throw new Error("Booking not found!");
+  }
+
+  const today = new Date().getDate();
+  const rent_start_date = new Date(booking.rows[0].rent_start_date).getDate();
+
+  if (today >= rent_start_date) {
+    throw new Error("Can't cancel booking. rental period has already started");
+  }
+
+  const bookingResult = await pool.query(
+    `UPDATE bookings SET status=$1 WHERE id=$2 RETURNING *`,
+    [status, id]
+  );
+
+  if (bookingResult.rowCount === 0) {
+    throw new Error("Booking not found!");
+  }
+
+  const bookingData = bookingResult.rows[0];
+
+  let vehicle = null;
+  if (bookingResult.rowCount! > 0) {
+    const vehicleResult = await pool.query(
+      `UPDATE vehicles SET availability_status=$1 WHERE id=$2 RETURNING availability_status`,
+      ["available", bookingData.vehicle_id]
+    );
+    vehicle = vehicleResult.rows[0];
+  }
+
+  return {
+    message:
+      status === "returned"
+        ? "Booking marked as returned. Vehicle is now available"
+        : "Booking cancelled successfully",
+    data: {
+      ...bookingData,
+      ...(status === "returned" && {
+        vehicle: {
+          availability_status: vehicle.availability_status,
+        },
+      }),
+    },
+  };
+};
+
 export const bookingsServices = {
   createBooking,
   getBookings,
-  updateBooking: () => {},
+  updateBooking,
 };
