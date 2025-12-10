@@ -6,13 +6,26 @@ import { pool } from "../../config/db";
 const registerUser = async (payload: Record<string, unknown>) => {
   const { name, email, password, phone, role } = payload;
 
+  if (!name || !email || !password || !phone || !role) {
+    throw new Error(
+      "all fields are required. please provide: name, email, password, phone, role fields to signup"
+    );
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (email && !emailRegex.test(email as string)) {
+    throw new Error(
+      "invalid email format. please provide a valid email address"
+    );
+  }
+
   if ((password as string).length <= 5) {
-    throw new Error("Password must be at least 6 characters long");
+    throw new Error("password must be at least 6 characters long");
   }
 
   if (role) {
     if (role !== "admin" && role !== "customer") {
-      throw new Error("User role must be admin or customer");
+      throw new Error("user role must be admin or customer");
     }
   }
 
