@@ -122,7 +122,7 @@ const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
 
 const deleteVehicle = async (id: string) => {
   const bookingResult = await pool.query(
-    `SELECT vehicle_id, rent_end_date, status FROM bookings WHERE vehicle_id=$1`,
+    `SELECT vehicle_id, status FROM bookings WHERE vehicle_id=$1`,
     [id]
   );
 
