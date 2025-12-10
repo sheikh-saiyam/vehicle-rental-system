@@ -7,9 +7,9 @@ const auth = (...roles: RoleType[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     try {
       const bearerToken = req.headers.authorization;
-      console.log("Bearer Token:", { bearerToken });
+      // console.log("Bearer Token:", { bearerToken });
       const token = bearerToken?.split("Bearer ")[1];
-      console.log("Token:", { token });
+      // console.log("Token:", { token });
 
       if (!token) {
         return res.status(401).json({
@@ -24,7 +24,7 @@ const auth = (...roles: RoleType[]) => {
       ) as JwtPayload;
 
       req.user = decoded;
-      console.log({ role: decoded.role });
+      // console.log({ role: decoded.role });
 
       if (roles.length > 0 && !roles.includes(decoded.role)) {
         return res.status(403).json({
@@ -65,11 +65,11 @@ export const verifyUser = () => {
       req.user = decoded;
 
       if (decoded.role === "customer") {
-        console.log({ matched: Number(decoded.id) !== Number(req.params.id) });
-        console.log({
-          decodedId: Number(decoded.id),
-          paramId: Number(req.params.id),
-        });
+        // console.log({ matched: Number(decoded.id) !== Number(req.params.id) });
+        // console.log({
+        //   decodedId: Number(decoded.id),
+        //   paramId: Number(req.params.id),
+        // });
         if (Number(decoded.id) !== Number(req.params.id)) {
           res.status(403).json({
             success: false,

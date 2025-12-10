@@ -70,8 +70,6 @@ const loginUser = async (reqEmail: string, reqPassword: string) => {
     }
   );
 
-  console.log(`Token for ${name}:`, { token });
-
   return { token: token, user: { id, name, email, phone, role } };
 };
 
