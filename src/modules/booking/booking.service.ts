@@ -62,7 +62,7 @@ const updateStatus = async () => {
     const today = new Date().getDate();
     const rent_end_date = new Date(booking.rent_end_date).getDate();
 
-    if (today >= rent_end_date) {
+    if (today > rent_end_date) {
       Promise.all([
         await pool.query(`UPDATE bookings SET status=$1 WHERE id=$2`, [
           "returned",

@@ -9,15 +9,34 @@ const createVehicle = async (payload: Record<string, unknown>) => {
     availability_status,
   } = payload;
 
-  if ((daily_rent_price as number) < 0) {
-    throw new Error("daily_rent_price must be a positive number");
+  if (
+    !vehicle_name ||
+    !type ||
+    !registration_number ||
+    !daily_rent_price ||
+    !availability_status
+  ) {
+    throw new Error(
+      "all fields are required. please provide: vehicle_name, type, registration_number, daily_rent_price, availability_status fields to create vehicle"
+    );
   }
 
-  if (
-    (availability_status as string) !== "available" &&
-    (availability_status as string) !== "booked"
-  ) {
-    throw new Error("availability_status value must be available or booked");
+  if (daily_rent_price) {
+    if (typeof daily_rent_price !== "number") {
+      throw new Error("daily_rent_price must be a number");
+    }
+    if (daily_rent_price < 0) {
+      throw new Error("daily_rent_price must be a positive number");
+    }
+  }
+
+  if (availability_status) {
+    if (
+      (availability_status as string) !== "available" &&
+      (availability_status as string) !== "booked"
+    ) {
+      throw new Error("availability_status value must be available or booked");
+    }
   }
 
   const result = await pool.query(
@@ -103,12 +122,13 @@ const updateVehicle = async (id: string, payload: Record<string, unknown>) => {
 
 const deleteVehicle = async (id: string) => {
   const bookingResult = await pool.query(
-    `SELECT vehicle_id FROM bookings WHERE vehicle_id=$1`,
+    `SELECT vehicle_id, rent_end_date, status FROM bookings WHERE vehicle_id=$1`,
     [id]
   );
 
-  if (bookingResult.rowCount && bookingResult.rowCount > 0) {
-    throw new Error("Can't delete vehicle with active bookings");
+  const isActive = bookingResult.rows.some((i) => i.status === "active");
+  if (isActive) {
+    throw new Error("can't delete vehicle with active bookings");
   }
 
   const result = await pool.query(`DELETE FROM vehicles WHERE id = $1`, [id]);
