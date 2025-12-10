@@ -4,23 +4,45 @@ import { RoleType } from "../../types/auth.types";
 const createBooking = async (payload: Record<string, unknown>) => {
   const { customer_id, vehicle_id, rent_start_date, rent_end_date } = payload;
 
+  if (!customer_id || !vehicle_id || !rent_start_date || !rent_end_date) {
+    throw new Error(
+      "all fields required. please provide: customer_id, vehicle_id, rent_start_date, rent_end_date fields to create booking"
+    );
+  }
+
   const rentStartDate = new Date(rent_start_date as string);
   const rentEndDate = new Date(rent_end_date as string);
+
+  if (isNaN(rentStartDate.getTime()) || isNaN(rentEndDate.getTime())) {
+    throw new Error("invalid date format for rent_start_date or rent_end_date");
+  }
 
   if (new Date(rentStartDate) > new Date(rentEndDate)) {
     throw new Error("rent_start_date must be before rent_end_date");
   }
 
-  const numberOfDates = rentEndDate.getDate() - rentStartDate.getDate();
+  const numberOfDates =
+    (rentEndDate.getTime() - rentStartDate.getTime()) / 86400000;
 
-  const vehicleResult = await pool.query(`SELECT * FROM vehicles WHERE id=$1`, [
-    vehicle_id,
+  const [vehicleResult, userResult] = await Promise.all([
+    await pool.query(
+      `SELECT availability_status, daily_rent_price FROM vehicles WHERE id=$1`,
+      [vehicle_id]
+    ),
+    await pool.query(`SELECT id FROM users WHERE id=$1`, [customer_id]),
   ]);
 
   const vehicle = vehicleResult.rows[0];
 
+  if (vehicleResult.rowCount === 0) {
+    throw new Error("vehicle not found. invalid vehicle_id provided");
+  }
+  if (userResult.rowCount === 0) {
+    throw new Error("customer not found. invalid customer_id provided");
+  }
+
   if (vehicle.availability_status === "booked") {
-    throw new Error("Vehicle is not available for booking. Already booked!");
+    throw new Error("already booked: vehicle is not available");
   }
 
   const totalPrice = numberOfDates * vehicle.daily_rent_price;
@@ -59,10 +81,11 @@ const updateStatus = async () => {
   );
 
   bookings.rows.map(async (booking: any) => {
-    const today = new Date().getDate();
-    const rent_end_date = new Date(booking.rent_end_date).getDate();
+    const today = new Date();
+    const rent_end_date = new Date(booking.rent_end_date);
+    const isExpired = today > rent_end_date;
 
-    if (today > rent_end_date) {
+    if (isExpired) {
       Promise.all([
         await pool.query(`UPDATE bookings SET status=$1 WHERE id=$2`, [
           "returned",
@@ -147,7 +170,7 @@ const updateBooking = async (
 
   if (today >= rent_start_date) {
     return {
-      message: "Can't cancel booking. rental period has already started",
+      message: "can't cancel booking. rental period has already started",
     };
   }
 
